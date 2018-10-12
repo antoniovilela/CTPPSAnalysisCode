@@ -11,7 +11,7 @@ Implementation:
 [Notes on implementation]
 */
 //
-// Original Author:  Diego Figueiredo
+// Original Author:  Diego Figueiredo and Nicola Turini
 //         Created:  Fri, 05 Oct 2018 09:08:27 GMT
 //
 //
@@ -38,7 +38,6 @@ MissingMassSearches::MissingMassSearches(const edm::ParameterSet& iConfig):
   jetTokenA_           ( consumes<edm::View<pat::Jet>>                               ( iConfig.getParameter<edm::InputTag>( "JetAlgoA" ) ) ),
   jetTokenB_           ( consumes<edm::View<pat::Jet>>                               ( iConfig.getParameter<edm::InputTag>( "JetAlgoB" ) ) ),
   eleToken_            ( consumes<edm::View<pat::Electron>>                          ( iConfig.getParameter<edm::InputTag>( "electronTag" ) ) ),
-  eleIdMapToken_       ( consumes<edm::ValueMap<bool>>                               ( iConfig.getParameter<edm::InputTag>( "electronId" ) ) ),
   muonToken_           ( consumes<edm::View<pat::Muon>>                              ( iConfig.getParameter<edm::InputTag>( "muonTag" ) ) ),
   pfToken_             ( consumes<std::vector< reco::PFCandidate>>                   ( iConfig.getParameter<edm::InputTag>( "pfTag" ) ) ),
   packedToken_         ( consumes<std::vector< pat::PackedCandidate>>                ( iConfig.getParameter<edm::InputTag>( "packedTag" ) ) ),
@@ -163,6 +162,14 @@ void MissingMassSearches::eventClear(){
     (*leptons_vx_).clear();
     (*leptons_vy_).clear();
     (*leptons_vz_).clear();
+    (*leptons_looseId_).clear();
+    (*leptons_mediumId_).clear();
+    (*leptons_tightId_).clear();
+    (*leptons_pfIsoMedium_).clear();
+    (*leptons_miniIsoTight_).clear();
+    (*leptons_pfIsoVeryTight_).clear();
+    (*leptons_pfIso_).clear();
+    (*leptons_tkIso_).clear();
   }
 
   if(includeProtons_){
@@ -381,9 +388,6 @@ void MissingMassSearches::fetchEventTagger(const edm::Event& iEvent){
 
   if(includeElectrons_){
 
-    edm::Handle<edm::ValueMap<bool> > ele_id_decisions;
-    iEvent.getByToken(eleIdMapToken_ ,ele_id_decisions);
-
     for ( const auto& leptonEvt: electronsVec) {
       (*leptons_pt_).push_back(leptonEvt->pt());
       (*leptons_eta_).push_back(leptonEvt->eta());
@@ -395,25 +399,14 @@ void MissingMassSearches::fetchEventTagger(const edm::Event& iEvent){
       (*leptons_vx_).push_back(leptonEvt->vertex().x());
       (*leptons_vy_).push_back(leptonEvt->vertex().y());
       (*leptons_vz_).push_back(leptonEvt->vertex().z());
-
-      std::cout << "ElectronId, loose: " << leptonEvt->electronID("cutBasedElectronID-Fall17-94X-V1-loose");
-      std::cout << "ElectronId, medium: " << leptonEvt->electronID("cutBasedElectronID-Fall17-94X-V1-medium");
-      std::cout << "ElectronId, tight: " << leptonEvt->electronID("cutBasedElectronID-Fall17-94X-V1-tight");
-
-
-      /*
-	 const std::vector<pat::Electron::IdPair> ids = leptonEvt->electronIDs();
-	 for ( unsigned int j = 0; j < ids.size(); ++j ) {
-	 pat::Electron::IdPair idp = ids.at( j );
-	 if ( eleMediumIdLabel_.find( idp.first ) != std::string::npos ) std::cout << "LabelMedium: " << idp.second << std::endl;
-	 if ( eleTightIdLabel_.find( idp.first ) != std::string::npos ) std::cout << "LabelTight: " << idp.second << std::endl;
-	 }
-
-	 bool isPassEleId = (*ele_id_decisions)[&leptonEvt];
-	 std::cout << "PASS ID: " << isPassEleId << std::endl;
-	 */
-
-
+      (*leptons_looseId_).push_back(leptonEvt->electronID("cutBasedElectronID-Fall17-94X-V1-loose"));
+      (*leptons_mediumId_).push_back(leptonEvt->electronID("cutBasedElectronID-Fall17-94X-V1-medium"));
+      (*leptons_tightId_).push_back(leptonEvt->electronID("cutBasedElectronID-Fall17-94X-V1-tight"));
+      (*leptons_pfIsoMedium_).push_back(-1);
+      (*leptons_miniIsoTight_).push_back(-1);
+      (*leptons_pfIsoVeryTight_).push_back(-1);
+      (*leptons_pfIso_).push_back(-1);
+      (*leptons_tkIso_).push_back(-1);
     }
     try{
       // storing jets AK4 candidates which are not matching each lepton candidate (highest and second highest pt)
@@ -435,6 +428,18 @@ void MissingMassSearches::fetchEventTagger(const edm::Event& iEvent){
       (*leptons_vx_).push_back(leptonEvt->vertex().x());
       (*leptons_vy_).push_back(leptonEvt->vertex().y());
       (*leptons_vz_).push_back(leptonEvt->vertex().z());
+      (*leptons_looseId_).push_back(-1);
+      (*leptons_mediumId_).push_back(-1);
+      (*leptons_tightId_).push_back(-1);
+
+      double pfIso = (leptonEvt->pfIsolationR04().sumChargedHadronPt + max(0., leptonEvt->pfIsolationR04().sumNeutralHadronEt + leptonEvt->pfIsolationR04().sumPhotonEt - 0.5*leptonEvt->pfIsolationR04().sumPUPt))/leptonEvt->pt();
+      double tkIso = (leptonEvt->isolationR03().sumPt)/(leptonEvt->pt());
+
+      (*leptons_pfIsoMedium_).push_back(leptonEvt->passed(reco::Muon::PFIsoMedium));
+      (*leptons_miniIsoTight_).push_back(leptonEvt->passed(reco::Muon::MiniIsoTight));
+      (*leptons_pfIsoVeryTight_).push_back(leptonEvt->passed(reco::Muon::PFIsoVeryTight));
+      (*leptons_pfIso_).push_back(pfIso);
+      (*leptons_tkIso_).push_back(tkIso);
     }
     try{
       // storing jets AK4 candidates which are not matching each lepton candidate (highest and second highest pt)
@@ -636,8 +641,9 @@ MissingMassSearches::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   // Trigger fired!
   if(fetchTrigger(iEvent,iSetup)){;
 
-    for ( const auto& triggerEvt: triggerVec) {
-      (*trigger_).push_back(triggerEvt);
+    for (std::size_t i = 0; i != triggerVec.size(); ++i) {
+      hltTriggerNamesHisto_->Fill( triggersList_[i].c_str(),triggerVec[i]);
+      (*trigger_).push_back(triggerVec[i]);
     }
 
     *run_ = iEvent.id().run();
@@ -673,7 +679,12 @@ MissingMassSearches::beginJob()
 {
 
   edm::Service<TFileService> fs;
-  tree_=fs->make<TTree>("MissingMassSearches","MissingMassSearches");
+  tree_=fs->make<TTree>("analyzer","analyzer");
+
+  // Control Histograms
+  TFileDirectory triggerDir = fs->mkdir("TriggerInfo");
+  hltTriggerNamesHisto_ = triggerDir.make<TH1F>("HLTTriggerNames","HLTTriggerNames",1,0,1);
+  hltTriggerNamesHisto_->SetCanExtend(TH1::kXaxis);
 
   run_ = new int;
   ev_ = new long int;
@@ -722,6 +733,14 @@ MissingMassSearches::beginJob()
     leptons_vx_ = new std::vector<float>;
     leptons_vy_ = new std::vector<float>;
     leptons_vz_ = new std::vector<float>;
+    leptons_looseId_ = new std::vector<bool>;
+    leptons_mediumId_ = new std::vector<bool>;
+    leptons_tightId_ = new std::vector<bool>;
+    leptons_pfIsoMedium_ = new std::vector<bool>;
+    leptons_miniIsoTight_ = new std::vector<bool>;
+    leptons_pfIsoVeryTight_ = new std::vector<bool>;
+    leptons_pfIso_ = new std::vector<bool>;
+    leptons_tkIso_ = new std::vector<bool>;
   }
 
   if(includeMET_){
@@ -793,6 +812,14 @@ MissingMassSearches::beginJob()
     tree_->Branch("leptons_vx",&leptons_vx_);
     tree_->Branch("leptons_vy",&leptons_vy_);
     tree_->Branch("leptons_vz",&leptons_vz_);
+    tree_->Branch("leptons_looseId",&leptons_looseId_);
+    tree_->Branch("leptons_mediumId",&leptons_mediumId_);
+    tree_->Branch("leptons_tightId",&leptons_tightId_);
+    tree_->Branch("leptons_pfIsoMedium_",&leptons_pfIsoMedium_);
+    tree_->Branch("leptons_miniIsoTight_",&leptons_miniIsoTight_);
+    tree_->Branch("leptons_pfIsoMedium_",&leptons_pfIsoVeryTight_);
+    tree_->Branch("leptons_pfIso_",&leptons_pfIso_);
+    tree_->Branch("leptons_tkIso_",&leptons_tkIso_);
   }
 
   if(includeMET_){
@@ -871,6 +898,14 @@ MissingMassSearches::endJob()
     delete leptons_vx_;
     delete leptons_vy_;
     delete leptons_vz_;
+    delete leptons_looseId_;
+    delete leptons_mediumId_;
+    delete leptons_tightId_;
+    delete leptons_pfIsoMedium_;
+    delete leptons_miniIsoTight_;
+    delete leptons_pfIsoVeryTight_;
+    delete leptons_pfIso_;
+    delete leptons_tkIso_;
   }
 
   if(includeMET_){

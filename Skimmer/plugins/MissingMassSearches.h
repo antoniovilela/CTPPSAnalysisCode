@@ -11,7 +11,7 @@ Implementation:
 [Notes on implementation]
 */
 //
-// Original Author:  Diego Figueiredo
+// Original Author:  Diego Figueiredo and Nicola Turini
 //         Created:  Fri, 05 Oct 2018 09:08:27 GMT
 //
 //
@@ -22,6 +22,7 @@ Implementation:
 #include "TTree.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TAxis.h"
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -115,7 +116,6 @@ class MissingMassSearches : public edm::one::EDAnalyzer<edm::one::SharedResource
 
     // Electrons
     edm::EDGetTokenT<edm::View<pat::Electron> > eleToken_;
-    edm::EDGetTokenT<edm::ValueMap<bool> > eleIdMapToken_;
 
     // Muons
     edm::EDGetTokenT<edm::View<pat::Muon> > muonToken_;
@@ -209,6 +209,14 @@ class MissingMassSearches : public edm::one::EDAnalyzer<edm::one::SharedResource
     std::vector<float> *leptons_vx_;
     std::vector<float> *leptons_vy_;
     std::vector<float> *leptons_vz_;
+    std::vector<bool> *leptons_looseId_;
+    std::vector<bool> *leptons_mediumId_;
+    std::vector<bool> *leptons_tightId_;
+    std::vector<bool> *leptons_pfIsoMedium_;
+    std::vector<bool> *leptons_miniIsoTight_;
+    std::vector<bool> *leptons_pfIsoVeryTight_;
+    std::vector<bool> *leptons_pfIso_;
+    std::vector<bool> *leptons_tkIso_;
 
     float *misset_;
     float *misset_phi_;
@@ -229,6 +237,9 @@ class MissingMassSearches : public edm::one::EDAnalyzer<edm::one::SharedResource
     // E/gamma identification
     edm::ParameterSet eleIdLabelSet_;
     std::string eleMediumIdLabel_, eleTightIdLabel_;
+
+    // Cross-check histograms
+    TH1F *hltTriggerNamesHisto_;
 
     // To be used with i.e. std::sort(v.begin(), v.end(), orderPT()), vector will be organized by pt.
     struct orderPt
