@@ -1,5 +1,5 @@
 import FWCore.ParameterSet.Config as cms
 
-missing_aod = cms.EDAnalyzer('MissingMassSearches',
+missing_mass = cms.EDAnalyzer('MissingMassSearches',
     triggerResults = cms.InputTag('TriggerResults', '', 'HLT'),
 )

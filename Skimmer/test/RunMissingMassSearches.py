@@ -5,13 +5,10 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 
 # Setting Input Parameters from Line Command
 options = VarParsing ('analysis')
-options.register('Lepton','Muon',VarParsing.multiplicity.singleton, VarParsing.varType.string,"Option to Run: Muon, ElectronMuon, Electron")
+options.register('Lepton','Muon',VarParsing.multiplicity.singleton, VarParsing.varType.string,"Option to Run: Muon or Electron")
 options.parseArguments()
 
-process = cms.Process("ggll")
-
-runOnMC = False
-useMiniAOD = True
+process = cms.Process("MissMass")
 
 if options.Lepton == "Muon":
   print("")
@@ -20,14 +17,21 @@ if options.Lepton == "Muon":
   print("#########")
   print("")
   triggerlist = 'HLT_IsoMu27_v*', 'HLT_DoubleMu43NoFiltersNoVtx_v*', 'HLT_DoubleMu48NoFiltersNoVtx_v*'
- 
-if options.Lepton == "Electron":
+  testfile = '/store/data/Run2017B/DoubleMuon/MINIAOD/31Mar2018-v1/90000/20A919B7-1737-E811-B9D6-1866DAEB296C.root'
+elif options.Lepton == "Electron":
   print("")
   print("#############")
   print("Data Electron")
   print("#############")
   print("")
   triggerlist = 'HLT_DoubleEle33_CaloIdL_MW_v*','HLT_Ele27_WPTight_Gsf_v*'
+  testfile = '/store/data/Run2017B/DoubleEG/MINIAOD/31Mar2018-v1/00000/00AC968A-8437-E811-A3AD-90B11CBCFF8F.root'
+else:
+  print("")
+  print("##########################################")
+  print("Please, try lepton=Muon or lepton=Electron")
+  print("##########################################")
+  print("")
 
 #########################
 #    General options    #
@@ -40,7 +44,7 @@ process.options   = cms.untracked.PSet(
     allowUnscheduled = cms.untracked.bool(True),
 )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(5000) )
 #process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 #########################
@@ -48,12 +52,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 #########################
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring(
-#'/store/data/Run2017B/DoubleMuon/AOD/17Nov2017-v1/30000/1A3141E3-20D6-E711-9BE7-02163E01A2E8.root',
-#'/store/data/Run2017C/DoubleEG/AOD/17Nov2017-v1/70000/FED9F7EB-93E4-E711-9116-FA163EE2AD3F.root'
-'/store/data/Run2017B/DoubleMuon/MINIAOD/17Nov2017-v1/30000/D805C5DB-20D6-E711-8386-02163E019C93.root'
-    ),
-    #firstEvent = cms.untracked.uint32(0)
+				fileNames = cms.untracked.vstring(testfile),
+				#firstEvent = cms.untracked.uint32(0)
 )
 
 #########################
@@ -66,7 +66,7 @@ process.hltFilter.HLTPaths = (triggerlist)
 #########################
 #      Preskimming      #
 #########################
-process.load("Configuration.StandardSequences.GeometryDB_cff") ## FIXME need to ensure that this is the good one
+process.load("Configuration.StandardSequences.GeometryDB_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data')
@@ -75,59 +75,13 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 
 #########################
-#     PAT-ification     #
-#########################
-## Look at https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePATTools#Core_Tools for more information
-
-process.out = cms.OutputModule("PoolOutputModule",
-    fileName = cms.untracked.string('PATuple.root'),
-    outputCommands = cms.untracked.vstring(
-        'drop *',
-        'keep *_offline*PrimaryVertices*_*_*',
-        'keep *_selectedPatMuons*_*_*',
-        'keep *_*lectron*_*_*',
-        'keep *_selectedPatElectrons*_*_*',
-        'keep *_selectedPat*Photons*_*_*',
-        'keep *_selectedPatJets*_*_*',
-        'keep *_*MET*_*_*',
-        'keep *_*particleFlow*_*_*',
-    ),
-)
-from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask
-patAlgosToolsTask = getPatAlgosToolsTask(process)
-
-process.load("PhysicsTools.PatAlgos.producersLayer1.patCandidates_cff")
-patAlgosToolsTask.add(process.patCandidatesTask)
-
-process.load("PhysicsTools.PatAlgos.selectionLayer1.selectedPatCandidates_cff")
-patAlgosToolsTask.add(process.selectedPatCandidatesTask)
-
-from PhysicsTools.PatAlgos.tools.coreTools import runOnData
-if not runOnMC:
-    runOnData( process )
-
-## add trigger information to the configuration
-#from PhysicsTools.PatAlgos.tools.trigTools import *
-#switchOnTrigger( process )
-
-#########################
 #      Electron ID      #
 #########################
 
-from PhysicsTools.SelectorUtils.tools.vid_id_tools import switchOnVIDElectronIdProducer, setupVIDElectronSelection, setupAllVIDIdsInModule, DataFormat
-from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
-
-switchOnVIDElectronIdProducer(process, DataFormat.AOD)
-#setupAllVIDIdsInModule(process, 'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff', setupVIDElectronSelection)
-setupAllVIDIdsInModule(process, 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_GeneralPurpose_V1_cff', setupVIDElectronSelection)
-
-#########################
-#       Photon ID       #
-#########################
-
-switchOnVIDPhotonIdProducer(process, DataFormat.AOD)
-setupAllVIDIdsInModule(process, 'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Spring16_nonTrig_V1_cff', setupVIDPhotonSelection)
-
+from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+setupEgammaPostRecoSeq(process,
+                       runVID=False, #saves CPU time by not needlessly re-running VID
+                       era='2017-Nov17ReReco')  
 
 #########################
 #     Proton Filter     #
@@ -145,46 +99,46 @@ process.protontagFilter = cms.EDFilter("ProtonTagFilter",
 #       Analysis        #
 #########################
 
+process.load("CTPPSAnalysisCode.Skimmer.countsAnalyzer_cfi")
+process.CounterBeforePPSTagging = process.countsAnalyzer.clone()
+process.CounterAfterPPSTagging = process.countsAnalyzer.clone()
+
 process.load("CTPPSAnalysisCode.Skimmer.MissingMassSearches_cfi")
-process.missing_aod.mode = cms.string('Muons') #Muons or Electrons
-process.missing_aod.debugging = cms.bool(True)
-process.missing_aod.includeMuons = cms.bool(True)
-process.missing_aod.includeElectrons = cms.bool(True)
-process.missing_aod.includeJets = cms.bool(True)
-process.missing_aod.includePhotons = cms.bool(True)
-process.missing_aod.includeMET = cms.bool(True)
-process.missing_aod.includeVertices = cms.bool(True)
-process.missing_aod.includeParticleFlow = cms.bool(True)
-process.missing_aod.includeProtons = cms.bool(True)
-process.missing_aod.triggersList = process.hltFilter.HLTPaths
-process.missing_aod.JetAlgoA = cms.InputTag('slimmedJets')
-process.missing_aod.JetAlgoB = cms.InputTag('slimmedJetsAK8')
-process.missing_aod.electronTag = cms.InputTag("slimmedElectrons")
-process.missing_aod.electronId = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-medium")
-process.missing_aod.muonTag = cms.InputTag("slimmedMuons")
-process.missing_aod.pfTag = cms.InputTag('particleFlow')
-process.missing_aod.packedTag = cms.InputTag('packedPFCandidates')
-process.missing_aod.photonTag = cms.InputTag('slimmedPhotons')
-process.missing_aod.metTag = cms.InputTag('slimmedMETs')
-process.missing_aod.vertexTag = cms.InputTag('offlineSlimmedPrimaryVertices')
-process.missing_aod.protonTag = cms.InputTag('ctppsLocalTrackLiteProducer')
-process.missing_aod.pixelsppsTag = cms.InputTag('ctppsPixelLocalTracks')
-process.missing_aod.timingppsTag = cms.InputTag('ctppsDiamondLocalTracks')
-process.missing_aod.stripstotemTag = cms.InputTag('totemRPLocalTrackFitter')
+process.missing_mass.mode = cms.string(options.Lepton) #Muons or Electrons
+process.missing_mass.debugging = cms.bool(False)
+process.missing_mass.includeMuons = cms.bool(True)
+process.missing_mass.includeElectrons = cms.bool(True)
+process.missing_mass.includeJets = cms.bool(True)
+process.missing_mass.includePhotons = cms.bool(True)
+process.missing_mass.includeMET = cms.bool(True)
+process.missing_mass.includeVertices = cms.bool(True)
+process.missing_mass.includeParticleFlow = cms.bool(True)
+process.missing_mass.includeProtons = cms.bool(True)
+process.missing_mass.triggersList = process.hltFilter.HLTPaths
+process.missing_mass.JetAlgoA = cms.InputTag('slimmedJets')
+process.missing_mass.JetAlgoB = cms.InputTag('slimmedJetsAK8')
+process.missing_mass.electronTag = cms.InputTag("slimmedElectrons")
+process.missing_mass.electronId = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-medium")
+process.missing_mass.muonTag = cms.InputTag("slimmedMuons")
+process.missing_mass.pfTag = cms.InputTag('particleFlow')
+process.missing_mass.packedTag = cms.InputTag('packedPFCandidates')
+process.missing_mass.photonTag = cms.InputTag('slimmedPhotons')
+process.missing_mass.metTag = cms.InputTag('slimmedMETs')
+process.missing_mass.vertexTag = cms.InputTag('offlineSlimmedPrimaryVertices')
+process.missing_mass.protonTag = cms.InputTag('ctppsLocalTrackLiteProducer')
+process.missing_mass.pixelsppsTag = cms.InputTag('ctppsPixelLocalTracks')
+process.missing_mass.timingppsTag = cms.InputTag('ctppsDiamondLocalTracks')
+process.missing_mass.stripstotemTag = cms.InputTag('totemRPLocalTrackFitter')
 
 # E/gamma identification
-process.missing_aod.eleIdLabels = cms.PSet(
+process.missing_mass.eleIdLabels = cms.PSet(
     mediumLabel = cms.InputTag('mvaEleID-Spring16-GeneralPurpose-V1-wp90'),
     tightLabel = cms.InputTag('mvaEleID-Spring16-GeneralPurpose-V1-wp80'),
 )
-process.missing_aod.phoIdLabels = cms.PSet(
+process.missing_mass.phoIdLabels = cms.PSet(
     mediumLabel = cms.InputTag('mvaPhoID-Spring16-nonTrig-V1-wp90'),
     tightLabel = cms.InputTag('mvaPhoID-Spring16-nonTrig-V1-wp80'),
 )
-#process.missing_aod.eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring16-GeneralPurpose-V1-wp90")
-#process.missing_aod.eleTightIdMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring16-GeneralPurpose-V1-wp80")
-#process.missing_aod.phoMediumIdMap = cms.InputTag("egmPhotonIDs:mvaPhoID-Spring16-nonTrig-V1-wp90")
-#process.missing_aod.phoTightIdMap = cms.InputTag("egmPhotonIDs:mvaPhoID-Spring16-nonTrig-V1-wp80")
 
 # prepare the output file
 process.TFileService = cms.Service('TFileService',
@@ -194,11 +148,9 @@ process.TFileService = cms.Service('TFileService',
 
 process.p = cms.Path(
     process.hltFilter*
+    process.CounterBeforePPSTagging*
     process.protontagFilter*
-    process.egmPhotonIDSequence*
-    process.egmGsfElectronIDSequence*
-    process.missing_aod
+    process.CounterAfterPPSTagging*
+    process.egammaPostRecoSeq*
+    process.missing_mass
 )
-
-##process.outpath = cms.EndPath(process.out, patAlgosToolsTask)
-process.outpath = cms.EndPath(patAlgosToolsTask)
