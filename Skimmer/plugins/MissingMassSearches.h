@@ -215,8 +215,8 @@ class MissingMassSearches : public edm::one::EDAnalyzer<edm::one::SharedResource
     std::vector<bool> *leptons_pfIsoMedium_;
     std::vector<bool> *leptons_miniIsoTight_;
     std::vector<bool> *leptons_pfIsoVeryTight_;
-    std::vector<bool> *leptons_pfIso_;
-    std::vector<bool> *leptons_tkIso_;
+    std::vector<float> *leptons_pfIso_;
+    std::vector<float> *leptons_tkIso_;
 
     float *misset_;
     float *misset_phi_;

@@ -32,13 +32,13 @@ mode = ""
 filesPerJob = 1
 
 config.General.transferLogs = True
-config.General.transferOutputs = True
+config.General.transferOutputs = False
 config.JobType.pluginName = 'Analysis'
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'LumiBased'
 config.Data.publication = False
 config.Site.storageSite = 'T2_CH_CERN'
-config.JobType.psetName = 'RunGammaGammaLeptonLepton_cfg.py'
+config.JobType.psetName = 'RunMissingMassSearches.py'
 #config.Data.ignoreLocality = True 
 #config.JobType.disableAutomaticOutputCollection = False
 
