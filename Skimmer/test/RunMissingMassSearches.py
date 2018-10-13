@@ -118,7 +118,6 @@ process.missing_mass.triggersList = process.hltFilter.HLTPaths
 process.missing_mass.JetAlgoA = cms.InputTag('slimmedJets')
 process.missing_mass.JetAlgoB = cms.InputTag('slimmedJetsAK8')
 process.missing_mass.electronTag = cms.InputTag("slimmedElectrons")
-process.missing_mass.electronId = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-medium")
 process.missing_mass.muonTag = cms.InputTag("slimmedMuons")
 process.missing_mass.pfTag = cms.InputTag('particleFlow')
 process.missing_mass.packedTag = cms.InputTag('packedPFCandidates')
