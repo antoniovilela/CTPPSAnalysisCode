@@ -392,7 +392,7 @@ void MissingMassSearches::fetchEventTagger(const edm::Event& iEvent){
       (*leptons_eta_).push_back(leptonEvt->eta());
       (*leptons_phi_).push_back(leptonEvt->phi());
       (*leptons_px_).push_back(leptonEvt->px());
-      (*leptons_py_).push_back(leptonEvt->pz());
+      (*leptons_py_).push_back(leptonEvt->py());
       (*leptons_pz_).push_back(leptonEvt->pz());
       (*leptons_charge_).push_back(leptonEvt->charge());
       (*leptons_vx_).push_back(leptonEvt->vertex().x());
@@ -421,7 +421,7 @@ void MissingMassSearches::fetchEventTagger(const edm::Event& iEvent){
       (*leptons_eta_).push_back(leptonEvt->eta());
       (*leptons_phi_).push_back(leptonEvt->phi());
       (*leptons_px_).push_back(leptonEvt->px());
-      (*leptons_py_).push_back(leptonEvt->pz());
+      (*leptons_py_).push_back(leptonEvt->py());
       (*leptons_pz_).push_back(leptonEvt->pz());
       (*leptons_charge_).push_back(leptonEvt->charge());
       (*leptons_vx_).push_back(leptonEvt->vertex().x());
