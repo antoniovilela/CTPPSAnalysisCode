@@ -32,7 +32,7 @@ mode = ""
 filesPerJob = 1
 
 config.General.transferLogs = True
-config.General.transferOutputs = True
+config.General.transferOutputs = False
 config.JobType.pluginName = 'Analysis'
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'LumiBased'
