@@ -611,19 +611,19 @@ void MissingMassSearches::Debug(){
 
   for ( const auto& protonsEvt: protonsVec ) {
     const CTPPSDetId det_id( protonsEvt->getRPId() );
-    std::cout << "Protons x[mm]: " << protonsEvt->getX() << ", arm: " << det_id.arm() << ", station: " << det_id.station() << ", pot: " << det_id.rp() << std::endl;
+    std::cout << "Protons (x,y)[mm]: (" << protonsEvt->getX() << ", " << protonsEvt->getY() << "), arm: " << det_id.arm() << ", station: " << det_id.station() << ", pot: " << det_id.rp() << std::endl;
   }
 
   for ( const auto& pixelsEvt: pixelsVec ) {
-    std::cout << "Pixels x[mm]: " << pixelsEvt.first->getX0() << ", Arm: " << pixelsEvt.second.arm() << ", Pot: " << pixelsEvt.second.rp() << ", Station: " << pixelsEvt.second.station() << std::endl;
+    std::cout << "Pixels (x,y)[mm]: (" << pixelsEvt.first->getX0() << ", " << pixelsEvt.first->getY0() << "), Arm: " << pixelsEvt.second.arm() << ", Pot: " << pixelsEvt.second.rp() << ", Station: " << pixelsEvt.second.station() << std::endl;
   }
 
   for ( const auto& timingEvt: timingVec ) {
-    std::cout << "Timing x[mm]: " << timingEvt.first->getX0() << ", Arm: " << timingEvt.second.arm() << ", Pot: " << timingEvt.second.rp() << ", Station: " << timingEvt.second.station() << std::endl;
+    std::cout << "Timing (x,y)[mm]: (" << timingEvt.first->getX0() << ", " << timingEvt.first->getY0() << "), Arm: " << timingEvt.second.arm() << ", Pot: " << timingEvt.second.rp() << ", Station: " << timingEvt.second.station() << std::endl;
   }
 
   for ( const auto& stripsEvt: stripsVec ) {
-    std::cout << "Strips x[mm]: " << stripsEvt.first->getX0() << ", Arm: " << stripsEvt.second.arm() << ", Pot: " << stripsEvt.second.rp() << ", Station: " << stripsEvt.second.station() << std::endl;
+    std::cout << "Strips (x,y)[mm]: (" << stripsEvt.first->getX0() << ", " << stripsEvt.first->getY0() << "), Arm: " << stripsEvt.second.arm() << ", Pot: " << stripsEvt.second.rp() << ", Station: " << stripsEvt.second.station() << std::endl;
   }
 
 }
