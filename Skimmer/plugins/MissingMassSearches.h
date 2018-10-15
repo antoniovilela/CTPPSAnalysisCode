@@ -199,6 +199,7 @@ class MissingMassSearches : public edm::one::EDAnalyzer<edm::one::SharedResource
     std::vector<bool> *jetsak8_tightJetId_;
     std::vector<bool> *jetsak8_lepVetoJetId_;
 
+    std::vector<float> *leptons_energy_;
     std::vector<float> *leptons_pt_;
     std::vector<float> *leptons_eta_;
     std::vector<float> *leptons_phi_;
