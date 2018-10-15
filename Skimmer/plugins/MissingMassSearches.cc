@@ -152,6 +152,7 @@ void MissingMassSearches::eventClear(){
   }
 
   if(includeElectrons_ || includeMuons_){
+    (*leptons_energy_).clear();
     (*leptons_pt_).clear();
     (*leptons_eta_).clear();
     (*leptons_phi_).clear();
@@ -388,6 +389,7 @@ void MissingMassSearches::fetchEventTagger(const edm::Event& iEvent){
 
   if(includeElectrons_){
     for ( const auto& leptonEvt: electronsVec) {
+      (*leptons_energy_).push_back(leptonEvt->energy());
       (*leptons_pt_).push_back(leptonEvt->pt());
       (*leptons_eta_).push_back(leptonEvt->eta());
       (*leptons_phi_).push_back(leptonEvt->phi());
@@ -417,6 +419,7 @@ void MissingMassSearches::fetchEventTagger(const edm::Event& iEvent){
 
   if(includeMuons_){
     for ( const auto& leptonEvt: muonsVec) {
+      (*leptons_energy_).push_back(leptonEvt->energy());
       (*leptons_pt_).push_back(leptonEvt->pt());
       (*leptons_eta_).push_back(leptonEvt->eta());
       (*leptons_phi_).push_back(leptonEvt->phi());
@@ -722,6 +725,7 @@ MissingMassSearches::beginJob()
   }
 
   if(includeElectrons_ || includeMuons_){
+    leptons_energy_ = new std::vector<float>;
     leptons_pt_ = new std::vector<float>;
     leptons_eta_ = new std::vector<float>;
     leptons_phi_ = new std::vector<float>;
@@ -801,6 +805,7 @@ MissingMassSearches::beginJob()
   }
 
   if(includeElectrons_ || includeMuons_){
+    tree_->Branch("leptons_energy",&leptons_energy_);
     tree_->Branch("leptons_pt",&leptons_pt_);
     tree_->Branch("leptons_eta",&leptons_eta_);
     tree_->Branch("leptons_phi",&leptons_phi_);
@@ -887,6 +892,7 @@ MissingMassSearches::endJob()
   }
 
   if(includeElectrons_ || includeMuons_){
+    delete leptons_energy_;
     delete leptons_pt_;
     delete leptons_eta_;
     delete leptons_phi_;
