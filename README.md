@@ -1,7 +1,7 @@
 # Missing Mass Searches Tools
 
-Such set of software tools have been made to be used for Missing Search Analysis. Basically, it consists in two steps: skimmer and Analyzer. 
-The skimmer is used to read the CMS MiniAOD samples and it produces files which will be needed for the Analyzer. Finally, the outputs of the Analyzer
+Such set of software tools has been made to be used for Missing Search Analysis. Basically, it consists in two steps: Skimmer and Analyzer. 
+The Skimmer is used to read the CMS MiniAOD samples and it produces files which will be needed for the Analyzer. Finally, the outputs of the Analyzer
 are the final files used for Physics. Detailed instructions for each step can be found into the tool folder ("Skimmer" or "Analyzer").
 
 ## Instalation
