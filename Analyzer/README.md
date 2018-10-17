@@ -34,8 +34,8 @@ The output files will be saved into 'Output' folder created by the script, for e
 #### Lxbatch Commands 
 
 ```sh
-**Submit:** LSB_JOB_REPORT_MAIL=N bsub -q 8nm -J job_id_0 -e jobs_error -o jobs_output < job.sh
-**Kill all jobs:** bkill 0 -u $USER
+LSB_JOB_REPORT_MAIL=N bsub -q 8nm -J job_id_0 -e jobs_error -o jobs_output < job.sh (Submit)
+bkill 0 -u $USER (Kill all jobs)
 ```
 
 **More information here:** [https://twiki.cern.ch/twiki/bin/view/Main/BatchJobs](https://twiki.cern.ch/twiki/bin/view/Main/BatchJobs)
@@ -51,11 +51,12 @@ python RunTTreeProductionCondor.py
 #### Condor Commands
 
 ```sh
-**Submit with automatic output transfer:** condor_submit job_condor.sub 
-**Check job:** condor_q (watch condor_q)
-**Submit (not automatic output transfer):** condor_submit -spool job_condor.sub
-**Retrieve data (only if not automatic transfer):** condor_transfer_data $LOGNAME -const 'JobStatus == 4'
-**kill all jobs:** condor_rm -all
+condor_submit job_condor.sub (Submit with automatic output transfer)
+watch condor_q (Check job)
+condor_q (Check job)
+condor_submit -spool job_condor.sub (Submit, but not automatic output transfer)
+condor_transfer_data $LOGNAME -const 'JobStatus == 4' (Retrieve data when submitted with -spool option)
+condor_rm -all (kill all jobs)
 ```
 
 **More information here:** [https://twiki.cern.ch/twiki/bin/view/ABPComputing/LxbatchHTCondor](https://twiki.cern.ch/twiki/bin/view/ABPComputing/LxbatchHTCondor)
