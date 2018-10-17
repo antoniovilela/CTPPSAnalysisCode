@@ -1,6 +1,7 @@
 #define MissingMassNtupleAnalyzer_cxx
 
 // ROOT header
+#include <TSystem.h>
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -25,7 +26,7 @@
 #define ns_to_s_ 1e-9;
 #define m_to_cm_ 1e2;
 
-void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char * jobid)
+void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char * jobid,char * outdir)
 {
 
   // debugging variables (printout values)
@@ -36,11 +37,22 @@ void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char 
   TFile* fileout;
   TTree* tout;
 
-  if(jobid && jobid!=NULL){
-    filenameout = "Ntuple_data_mode_"+std::string(mode)+"_"+std::string(jobid)+".root";
+  if (outdir!=NULL) {
+    gSystem->MakeDirectory(outdir);
+    if(jobid!=NULL){
+      filenameout = std::string(outdir)+"/Ntuple_data_mode_"+std::string(mode)+"_era_"+std::string(era)+"_"+std::string(jobid)+".root";
+    }else{
+      filenameout = std::string(outdir)+"/Ntuple_data_mode_"+std::string(mode)+"_era_"+std::string(era)+".root";
+    }
   }else{
-    filenameout = "Ntuple_data_mode_"+std::string(mode)+".root";
+    if(jobid!=NULL){
+      filenameout = "Ntuple_data_mode_"+std::string(mode)+"_era_"+std::string(era)+"_"+std::string(jobid)+".root";
+    }else{
+      filenameout = "Ntuple_data_mode_"+std::string(mode)+"_era_"+std::string(era)+".root";
+    }
   }
+
+  std::cout << "Filenameout: " << filenameout << std::endl;
   fileout = new TFile(filenameout, "RECREATE");
 
   std::cout << "\t = Options =" << std::endl;
@@ -125,6 +137,16 @@ void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char 
   float sumEnergyPF_ = 0;
   float dphi_ = 0;
 
+  float xi1, xi2 = -1;
+  float diffMass = -1;
+  float proton1_pz, proton2_pz = -1;
+
+  int angle = -1;
+  float protonArm45_x = 0;
+  float protonArm45_y = 0;
+  float protonArm56_x = 0;
+  float protonArm56_y = 0;
+
   tout = new TTree("Events", "Events");
   tout->Branch("run",&run_,"run/I");
   tout->Branch("event",&event_,"event/I");
@@ -190,6 +212,16 @@ void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char 
   tout->Branch("nPF",&nPF_,"nPF/I");
   tout->Branch("sumEnergyPF",&sumEnergyPF_,"sumEnergyPF/F");
   tout->Branch("dphi",&dphi_,"dphi/F");
+  tout->Branch("angle",&angle,"angle/I");
+  tout->Branch("diffMass",&diffMass,"diffMass/F");
+  tout->Branch("xi1",&xi1,"xi1/F");
+  tout->Branch("xi2",&xi2,"xi2/F");
+  tout->Branch("proton1Pz",&proton1_pz,"proton1Pz/F");
+  tout->Branch("proton2Pz",&proton2_pz,"proton2Pz/F");
+  tout->Branch("protonArm45_x",&protonArm45_x,"protonArm45_x/F");
+  tout->Branch("protonArm45_y",&protonArm45_y,"protonArm45_y/F");
+  tout->Branch("protonArm56_x",&protonArm56_x,"protonArm56_x/F");
+  tout->Branch("protonArm56_y",&protonArm56_y,"protonArm56_y/F");
 
   if (fChain == 0) return;
 
@@ -281,19 +313,21 @@ void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char 
     int protonArm45 = 0;
     int protonArm56 = 0;
 
-    float protonArm45_x = 0;
-    float protonArm45_y = 0;
+    protonArm45_x = 0;
+    protonArm45_y = 0;
 
-    float protonArm56_x = 0;
-    float protonArm56_y = 0;
+    protonArm56_x = 0;
+    protonArm56_y = 0;
 
     for(std::vector<int>::size_type i = 0; i != protonsArm->size(); i++){
-      if(protonsArm->at(i)==0&&(protonsStation->at(i)==0||protonsStation->at(i)==2)&&protonsRP->at(i)==3){
+      // @ 2017, station 0, pot 3 is an horizontal RP strip!
+      if(protonsArm->at(i)==0&&protonsStation->at(i)==2&&protonsRP->at(i)==3){
 	protonArm45++;
 	protonArm45_x = protonsX->at(i);
 	protonArm45_y = protonsY->at(i);
       }
-      if(protonsArm->at(i)==1&&(protonsStation->at(i)==0||protonsStation->at(i)==2)&&protonsRP->at(i)==3){
+      // @ 2017, station 0, pot 3 is an horizontal RP strip!
+      if(protonsArm->at(i)==1&&protonsStation->at(i)==2&&protonsRP->at(i)==3){
 	protonArm56++;
 	protonArm56_x = protonsX->at(i);
 	protonArm56_y = protonsY->at(i);
@@ -318,7 +352,7 @@ void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char 
 
       TLorentzVector X;
 
-      int angle = -1;
+      angle = -1;
       float dispersionL = -1;
       float dispersionR = -1;
 
@@ -333,14 +367,16 @@ void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char 
       float relcorr=0;
       preTS2 ? relcorr=(42.05):relcorr=(42.2);
 
-      float xi1, xi2 = -1;
-      float diffmass = -1;
-      float proton1_pz, proton2_pz = -1;
+      xi1 = -1.;
+      xi2 = -1.;
+      diffMass = -1.;
+      proton1_pz = -1.;
+      proton2_pz = -1.;
 
       if(preTS2){
-	angle=getXangle(run, lumiblock, "./inp/new/xangle_tillTS2_STABLEBEAMS_CLEANUP.csv");
+	angle=getXangle(run, lumiblock, "xangle_tillTS2_STABLEBEAMS_CLEANUP.csv");
       }else{
-	angle=getXangle(run, lumiblock, "./inp/xangle_afterTS2_cleanup.csv");
+	angle=getXangle(run, lumiblock, "xangle_afterTS2_STABLEBEAMS_CLEANUP.csv");
       }
 
       if(angle !=120 && angle != 130 && angle != 140){
@@ -364,10 +400,7 @@ void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char 
 
       p1.SetPxPyPzE(0.,0., ECM*xi1/2., ECM*xi1/2.);
       p2.SetPxPyPzE(0.,0., -ECM*xi2/2., ECM*xi2/2.);
-      diffmass=ECM*sqrt((  (xi1)*(xi2) ));
-
-      // Not associated protons... not physical result!
-      if(!(xi1>0. && xi2>0.)) continue;
+      diffMass=ECM*sqrt((  (xi1)*(xi2) ));
 
       // HLT Muons: 'HLT_IsoMu27_v*', 'HLT_DoubleMu43NoFiltersNoVtx_v*', 'HLT_DoubleMu48NoFiltersNoVtx_v*' 
       // HLT Electrons: 'HLT_DoubleEle33_CaloIdL_MW_v*','HLT_Ele27_WPTight_Gsf_v*'
@@ -398,8 +431,8 @@ void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char 
       // Invisible particle associated with dilepton
       X = p1 + p2 - dilepton;
 
-      // By chance, some protons not associated with the event...
-      if(!(X.M()>0)) continue;
+      // By chance, some protons not associated with the event... Single diffractive + Single diffractive (from pu)
+      if(!(X.M()>=0)) continue;
 
       if(debug){
 	std::cout << "\n\t == Event " << jentry << " ==" << std::endl;
@@ -450,6 +483,7 @@ void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char 
       secondLeptonPfIsoVeryTight = leptons_pfIsoVeryTight_->at(1);
 
       nJets = jetsak4_pt->size();
+
       leadingJetEnergy = jetsak4_energy->at(0);
       leadingJetPt = jetsak4_pt->at(0);
       leadingJetEta = jetsak4_eta->at(0);
@@ -462,6 +496,11 @@ void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char 
       secondJetPhi = jetsak4_phi->at(1);
       secondJetVz = jetsak4_vz->at(1);
       secondJetBtag = jetsak4_bdis->at(1);
+      dijetMass = dijet.M();
+      dijetEta = dijet.Eta();
+      dijetPhi = dijet.Phi();
+      dijetPt = dijet.Pt();
+      dijetRapidity = dijet.Rapidity();
 
       dileptonCharge = leptons_charge->at(0) + leptons_charge->at(1);
       dileptonMass = dilepton.M();
@@ -469,11 +508,6 @@ void MissingMassNtupleAnalyzer::Loop(char * era, char * mode, bool preTS2, char 
       dileptonPhi = dilepton.Phi();
       dileptonPt = dilepton.Pt();
       dileptonRapidity = dilepton.Rapidity();
-      dijetMass = dijet.M();
-      dijetEta = dijet.Eta();
-      dijetPhi = dijet.Phi();
-      dijetPt = dijet.Pt();
-      dijetRapidity = dijet.Rapidity();
       missingMass = X.M();
       missingEta = X.Eta();
       missingPhi = X.Phi();
@@ -571,7 +605,8 @@ int main(int argc, char * argv[])
     std::cout << "\t --f filename.root (input file)" << std::endl;
     std::cout << "\t --era B (B, C, D, E or F)" << std::endl;
     std::cout << "\t --mode Muon (or Electron)" << std::endl;
-    std::cout << "\t --jobid job1 (tag to be added in the outputfile)\n" << std::endl;
+    std::cout << "\t --jobid job1 (tag to be added in the outputfile, _option_)\n" << std::endl;
+    std::cout << "\t --outdir Output (Output dir for jobs, _option_)\n" << std::endl;
     return 0;
   }
 
@@ -579,6 +614,34 @@ int main(int argc, char * argv[])
   char * era = getCmdOption(argv, argv + argc, "--era");
   char * mode = getCmdOption(argv, argv + argc, "--mode");
   char * jobid = getCmdOption(argv, argv + argc, "--jobid");
+  char * outdir = getCmdOption(argv, argv + argc, "--outdir");
+
+  if (outdir && strstr(outdir,"--")!=0) {
+    std::cout << "\n\t ---> Missing --outdir parameter! Please try again!\n" << std::endl;
+    return 0;
+  }
+
+  if (jobid && strstr(jobid,"--")!=0) {
+    std::cout << "\n\t ---> Missing --jobid parameter! Please try again!\n" << std::endl;
+    return 0;
+  }
+
+  /*
+     if (filename && strstr(filename,"--")!=0) {
+     std::cout << "\n\t ---> Missing --filename parameter! Please try again!\n" << std::endl;
+     return 0;
+     }
+
+     if (era && strstr(era,"--")!=0) {
+     std::cout << "\n\t ---> Missing --era parameter! Please try again!\n" << std::endl;
+     return 0;
+     }
+
+     if (mode && strstr(mode,"--")!=0) {
+     std::cout << "\n\t ---> Missing --mode parameter! Please try again!\n" << std::endl;
+     return 0;
+     }
+     */
 
   if (filename && era && mode)
   {
@@ -613,7 +676,7 @@ int main(int argc, char * argv[])
 
     // Accessing Missing Mass Object
     MissingMassNtupleAnalyzer m(tree); 
-    m.Loop(era, mode, preTS2, jobid);
+    m.Loop(era, mode, preTS2, jobid, outdir);
   }else{
     std::cout << "\n\t --> Please, insert --f filename.root and --era B (or C, D, E, F) --mode Muon (or Electron)\n" << std::endl;
   }
