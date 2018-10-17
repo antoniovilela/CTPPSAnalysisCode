@@ -6,6 +6,10 @@
 # 3) Submit (not automatic output transfer): condor_submit -spool job_condor.sub
 # 4) Retrieve data (only if 3): condor_transfer_data $LOGNAME -const 'JobStatus == 4'
 # 5) kill all jobs: condor_rm -all
+#
+# More info: https://twiki.cern.ch/twiki/bin/view/ABPComputing/LxbatchHTCondor
+# Gui for Monitoring: https://monit-grafana.cern.ch/d/000000869/user-batch-jobs?orgId=5&refresh=5m&var-cluster=cernprod
+#
 #########################################
 
 initialdir              = OutputMuonF

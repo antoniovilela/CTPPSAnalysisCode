@@ -56,14 +56,14 @@ print '\nSending Condor jobs to produce NTuples for Missing Mass CTPPS Analysis\
 i = 0
 while i < len(parameters):
         with open('job_condor_tmp.sub', 'w') as fout:
-                fout.write("initialdir = "+parameters[i][4]+"\n")
-                fout.write("executable = ./MissingMassNtupleAnalyzer\n")
-                fout.write("arguments = --f "+parameters[i][0]+" --era "+parameters[i][1]+" --mode "+parameters[i][2]+" --jobid "+parameters[i][3]+"\n")
-                fout.write("transfer_input_files = ../xangle_afterTS2_STABLEBEAMS_CLEANUP.csv, ../xangle_tillTS2_STABLEBEAMS_CLEANUP.csv\n")
-                fout.write("output = missing_mass_"+parameters[i][3]+".out\n")
-                fout.write("error = missing_mass_"+parameters[i][3]+".err\n")
-                fout.write("log = missing_mass_"+parameters[i][3]+".log\n")
-                fout.write("getenv = True\n")
+                fout.write("initialdir\t\t\t= "+parameters[i][4]+"\n")
+                fout.write("executable\t\t\t= ./MissingMassNtupleAnalyzer\n")
+                fout.write("arguments\t\t\t= --f "+parameters[i][0]+" --era "+parameters[i][1]+" --mode "+parameters[i][2]+" --jobid "+parameters[i][3]+"\n")
+                fout.write("transfer_input_files\t\t\t= ../xangle_afterTS2_STABLEBEAMS_CLEANUP.csv, ../xangle_tillTS2_STABLEBEAMS_CLEANUP.csv\n")
+                fout.write("output\t\t\t= missing_mass_"+parameters[i][3]+".out\n")
+                fout.write("error\t\t\t= missing_mass_"+parameters[i][3]+".err\n")
+                fout.write("log\t\t\t= missing_mass_"+parameters[i][3]+".log\n")
+                fout.write("getenv\t\t\t= True\n")
 
 		###########################
 		# espresso     = 20 minutes
@@ -75,10 +75,11 @@ while i < len(parameters):
 		# nextweek     = 1 week
 		##########################
 
-                fout.write("+JobFlavour = microcentury\n")
+                fout.write("+JobFlavour\t\t\t= microcentury\n")
                 fout.write("queue\n")
-	os.system('condor_submit -spool job_condor_tmp.sub')
-	os.system('rm job_condor_tmp.sub')
+	#os.system('condor_submit -spool job_condor_tmp.sub')
+	os.system('condor_submit job_condor_tmp.sub')
+	#os.system('rm job_condor_tmp.sub')
         i += 1
 
 print 'END\n'
