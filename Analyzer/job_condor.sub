@@ -1,0 +1,31 @@
+#########################################
+# Condor Job Lxplus
+# Commands:
+# 1) Submit with automatic output transfer: condor_submit job_condor.sub 
+# 2) Check job: condor_q (watch condor_q)
+# 3) Submit (not automatic output transfer): condor_submit -spool job_condor.sub
+# 4) Retrieve data (only if 3): condor_transfer_data $LOGNAME -const 'JobStatus == 4'
+# 5) kill all jobs: condor_rm -all
+#########################################
+
+initialdir              = OutputMuonF
+executable              = ./MissingMassNtupleAnalyzer
+arguments               = --f /eos/cms/store/group/phys_pps/MissingMassSearch/MuonF-MiniAOD-v3/DoubleMuon/MuonF-MiniAOD-v3/181015_165902/0000/output_99.root --era F --mode Muon --jobid 893
+transfer_input_files    = ../xangle_afterTS2_STABLEBEAMS_CLEANUP.csv, ../xangle_tillTS2_STABLEBEAMS_CLEANUP.csv 
+output                  = missing_mass.out
+error                   = missing_mass.err
+log                     = missing_mass.log
+getenv                  = True
+
+###########################
+# espresso     = 20 minutes
+# microcentury = 1 hour
+# longlunch    = 2 hours
+# workday      = 8 hours
+# tomorrow     = 1 day
+# testmatch    = 3 days
+# nextweek     = 1 week
+##########################
++JobFlavour = microcentury
+
+queue
