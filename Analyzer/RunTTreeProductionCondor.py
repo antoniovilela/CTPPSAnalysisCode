@@ -79,7 +79,9 @@ while i < len(parameters):
                 fout.write("queue\n")
 	#os.system('condor_submit -spool job_condor_tmp.sub')
 	os.system('condor_submit job_condor_tmp.sub')
-	#os.system('rm job_condor_tmp.sub')
+	os.system('rm job_condor_tmp.sub')
         i += 1
+	status = "Job "+str(i)+" submitted from "+str(len(parameters))+"\n"
+	print status
 
 print 'END\n'
