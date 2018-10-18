@@ -23,15 +23,10 @@ mytask= [['/eos/cms/store/group/phys_pps/MissingMassSearch/MuonB-MiniAOD-v3/Doub
 	['/eos/cms/store/group/phys_pps/MissingMassSearch/ElectronE-MiniAOD-v3/DoubleEG/ElectronE-MiniAOD-v3/181015_170002/0000/','E','Electron','OutputElectronE'],
 	['/eos/cms/store/group/phys_pps/MissingMassSearch/ElectronF-MiniAOD-v3/DoubleEG/ElectronF-MiniAOD-v3/181015_170020/0000/','F','Electron','OutputElectronF']]
 
-# Creating list of commands for all files inside each directory defined under mytask.
+# Preparing Submission Folders
 # i.e: ./MissingMassNtupleAnalyzer --f /eos/cms/store/group/phys_pps/MissingMassSearch/MuonF-MiniAOD-v3/DoubleMuon/MuonF-MiniAOD-v3/181015_165902/0000/output_99.root --era F --mode Muon --jobid 893
 i = 0
-jobid = 0
-parameters = []
-element = []
 while i < len(mytask):
-	onlyfiles = [f for f in listdir(mytask[i][0]) if isfile(join(mytask[i][0], f))]
-	j = 0
         
 	# Creating Output Folder
 	folderout = str(path)+"/"+mytask[i][3]
@@ -41,28 +36,20 @@ while i < len(mytask):
 		os.system("cp *.csv "+folderout+"/.")
 	else:
 		os.system("rm -rf "+folderout)
-
-	while j < len(onlyfiles):
-		# path + file name, era, mode, jobid, output folder
-		element = [mytask[i][0]+onlyfiles[j], mytask[i][1], mytask[i][2], str(jobid), mytask[i][3]]
-                parameters.append(element)
-		jobid += 1
-		j += 1
 	i += 1
-
 # Sending Jobs @ Condor! Party is just in the beginning!
 print '\nSending Condor jobs to produce NTuples for Missing Mass CTPPS Analysis\n'
 
 i = 0
-while i < len(parameters):
+while i < len(mytask):
         with open('job_condor_tmp.sub', 'w') as fout:
-                fout.write("initialdir\t\t\t= "+parameters[i][4]+"\n")
+                fout.write("initialdir\t\t\t= "+mytask[i][3]+"\n")
                 fout.write("executable\t\t\t= ./MissingMassNtupleAnalyzer\n")
-                fout.write("arguments\t\t\t= --f "+parameters[i][0]+" --era "+parameters[i][1]+" --mode "+parameters[i][2]+" --jobid "+parameters[i][3]+"\n")
+                fout.write("arguments\t\t\t= --f $(filename) --era "+mytask[i][1]+" --mode "+mytask[i][2]+" --jobid $(ProcId)\n")
                 fout.write("transfer_input_files\t\t\t= ../xangle_afterTS2_STABLEBEAMS_CLEANUP.csv, ../xangle_tillTS2_STABLEBEAMS_CLEANUP.csv\n")
-                fout.write("output\t\t\t= missing_mass_"+parameters[i][3]+".out\n")
-                fout.write("error\t\t\t= missing_mass_"+parameters[i][3]+".err\n")
-                fout.write("log\t\t\t= missing_mass_"+parameters[i][3]+".log\n")
+                fout.write("output\t\t\t= missing_mass_$(ClusterId).$(ProcId).out\n")
+                fout.write("error\t\t\t= missing_mass_.$(ClusterId).$(ProcId).err\n")
+                fout.write("log\t\t\t= missing_mass_.$(ClusterId).$(ProcId).log\n")
                 fout.write("getenv\t\t\t= True\n")
 
 		###########################
@@ -76,12 +63,9 @@ while i < len(parameters):
 		##########################
 
                 fout.write("+JobFlavour\t\t\t= microcentury\n")
-                fout.write("queue\n")
-	#os.system('condor_submit -spool job_condor_tmp.sub')
+                fout.write("queue filename matching("+mytask[i][0]+"*.root)\n")
 	os.system('condor_submit job_condor_tmp.sub')
 	os.system('rm job_condor_tmp.sub')
         i += 1
-	status = "Job "+str(i)+" submitted from "+str(len(parameters))+"\n"
-	print status
 
 print 'END\n'
