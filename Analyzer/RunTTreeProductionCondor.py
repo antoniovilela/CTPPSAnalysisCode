@@ -8,7 +8,17 @@ from os import listdir
 from os.path import isfile, join
 
 # Creating Output Folder
+# submit from (CTPPSAnalysisCode/Analyzer) folder
 path = os.getcwd()
+
+# Checking if cmsenv has been done
+os.system("cd "+path)
+try:
+   ReleaseBase = os.path.join(os.environ['CMSSW_BASE'], "src")
+   ReleaseVersion = os.environ['CMSSW_VERSION']
+except KeyError:
+   print "CMSSW enviroment not set, please run cmsenv!"
+sys.exit()
 
 # Configure here the folders where your jobs are located. Please, fill era (B,C,D,E and F) and mode (Muon or Electron) correctly!
 # format ['Crab output folder', 'Era', 'Mode']
@@ -37,6 +47,7 @@ while i < len(mytask):
 	else:
 		os.system("rm -rf "+folderout)
 	i += 1
+
 # Sending Jobs @ Condor! Party is just in the beginning!
 print '\nSending Condor jobs to produce NTuples for Missing Mass CTPPS Analysis\n'
 
@@ -47,10 +58,10 @@ while i < len(mytask):
                 fout.write("executable\t\t\t= ./MissingMassNtupleAnalyzer\n")
                 fout.write("arguments\t\t\t= --f $(filename) --era "+mytask[i][1]+" --mode "+mytask[i][2]+" --jobid $(ProcId)\n")
                 fout.write("transfer_input_files\t\t\t= ../xangle_afterTS2_STABLEBEAMS_CLEANUP.csv, ../xangle_tillTS2_STABLEBEAMS_CLEANUP.csv\n")
-                fout.write("output\t\t\t= missing_mass_$(ClusterId).$(ProcId).out\n")
-                fout.write("error\t\t\t= missing_mass_.$(ClusterId).$(ProcId).err\n")
-                fout.write("log\t\t\t= missing_mass_.$(ClusterId).$(ProcId).log\n")
-                fout.write("getenv\t\t\t= True\n")
+                fout.write("output\t\t\t= missing_mass.$(ClusterId).$(ProcId).out\n")
+                fout.write("error\t\t\t= missing_mass.$(ClusterId).$(ProcId).err\n")
+                fout.write("log\t\t\t= missing_mass.$(ClusterId).$(ProcId).log\n")
+                fout.write("getenv\t\t\t= True\n\n")
 
 		###########################
 		# espresso     = 20 minutes
@@ -62,7 +73,7 @@ while i < len(mytask):
 		# nextweek     = 1 week
 		##########################
 
-                fout.write("+JobFlavour\t\t\t= microcentury\n")
+                fout.write("+JobFlavour\t\t\t= microcentury\n\n")
                 fout.write("queue filename matching("+mytask[i][0]+"*.root)\n")
 	os.system('condor_submit job_condor_tmp.sub')
 	os.system('rm job_condor_tmp.sub')
