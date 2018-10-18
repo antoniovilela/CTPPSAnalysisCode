@@ -65,8 +65,8 @@ while i < len(mytask):
 
                 fout.write("+JobFlavour\t\t\t= microcentury\n\n")
                 fout.write("queue filename matching("+mytask[i][0]+"*.root)\n")
-	#os.system('condor_submit job_condor_tmp.sub')
-	#os.system('rm job_condor_tmp.sub')
+	os.system('condor_submit job_condor_tmp.sub')
+	os.system('rm job_condor_tmp.sub')
         i += 1
 
 print 'END\n'
