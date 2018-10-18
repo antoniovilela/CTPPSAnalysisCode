@@ -14,11 +14,11 @@ path = os.getcwd()
 # Checking if cmsenv has been done
 os.system("cd "+path)
 try:
-   ReleaseBase = os.path.join(os.environ['CMSSW_BASE'], "src")
-   ReleaseVersion = os.environ['CMSSW_VERSION']
+	ReleaseBase = os.path.join(os.environ['CMSSW_BASE'], "src")
+	ReleaseVersion = os.environ['CMSSW_VERSION']
 except KeyError:
-   print "CMSSW enviroment not set, please run cmsenv!"
-sys.exit()
+	print "CMSSW enviroment not set, please run cmsenv!"
+	sys.exit()
 
 # Configure here the folders where your jobs are located. Please, fill era (B,C,D,E and F) and mode (Muon or Electron) correctly!
 # format ['Crab output folder', 'Era', 'Mode']
