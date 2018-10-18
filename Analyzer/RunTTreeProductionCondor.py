@@ -8,7 +8,17 @@ from os import listdir
 from os.path import isfile, join
 
 # Creating Output Folder
+# submit from (CTPPSAnalysisCode/Analyzer) folder
 path = os.getcwd()
+
+# Checking if cmsenv has been done
+os.system("cd "+path)
+try:
+   ReleaseBase = os.path.join(os.environ['CMSSW_BASE'], "src")
+   ReleaseVersion = os.environ['CMSSW_VERSION']
+except KeyError:
+   print "CMSSW enviroment not set, please run cmsenv!"
+sys.exit()
 
 # Configure here the folders where your jobs are located. Please, fill era (B,C,D,E and F) and mode (Muon or Electron) correctly!
 # format ['Crab output folder', 'Era', 'Mode']
@@ -37,9 +47,9 @@ while i < len(mytask):
 	else:
 		os.system("rm -rf "+folderout)
 	i += 1
+
 # Sending Jobs @ Condor! Party is just in the beginning!
 print '\nSending Condor jobs to produce NTuples for Missing Mass CTPPS Analysis\n'
-os.system(path+"/cmsenv")
 
 i = 0
 while i < len(mytask):
